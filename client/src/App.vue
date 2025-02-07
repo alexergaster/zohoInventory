@@ -1,102 +1,4 @@
 <template>
-  <!-- <div class="max-w-lg mx-auto bg-gray-800 p-6 rounded-lg shadow-md">
-    <h2 class="text-2xl font-bold mb-4">Форма замовлення</h2>
-
-    <form id="orderForm" @submit.prevent="sendForm">
-      <div class="mb-4">
-        <label for="clientName" class="block text-sm font-medium"
-          >Ім'я клієнта</label
-        >
-        <input
-          type="text"
-          id="clientName"
-          name="clientName"
-          class="mt-1 block w-full border border-gray-600 rounded-md shadow-sm p-2 bg-gray-700 text-white focus:ring focus:ring-blue-500"
-          placeholder="Введіть ім'я"
-          v-model="contact.name"
-        />
-      </div>
-      <div class="mb-4">
-        <label for="contactInfo" class="block text-sm font-medium"
-          >Контактна інформація(email)</label
-        >
-        <input
-          type="email"
-          id="contactInfo"
-          name="contactInfo"
-          class="mt-1 block w-full border border-gray-600 rounded-md shadow-sm p-2 bg-gray-700 text-white focus:ring focus:ring-blue-500"
-          placeholder="Введіть контактну інформацію"
-          v-model="contact.email"
-        />
-      </div>
-
-      <div class="mb-4">
-        <label for="product" class="block text-sm font-medium"
-          >Назва товару</label
-        >
-        <select
-          id="product"
-          name="product"
-          class="mt-1 block w-full border border-gray-600 rounded-md shadow-sm p-2 bg-gray-700 text-white focus:ring focus:ring-blue-500"
-          v-model="product.id"
-        >
-          <option value="">Оберіть товар</option>
-          <option
-            v-for="product in products"
-            :key="product.item_id"
-            :value="product.item_id"
-          >
-            {{ product.name }} - {{ product.rate }} грн,
-            {{ product.actual_available_stock || "0" }} шт.
-          </option>
-        </select>
-      </div>
-      <div class="mb-4"></div>
-
-      <div class="mb-4">
-        <label for="quantity" class="block text-sm font-medium"
-          >Кількість</label
-        >
-        <input
-          type="number"
-          id="quantity"
-          name="quantity"
-          class="mt-1 block w-full border border-gray-600 rounded-md shadow-sm p-2 bg-gray-700 text-white focus:ring focus:ring-blue-500"
-          placeholder="Введіть кількість"
-          v-model="product.quantity"
-        />
-      </div>
-
-      <div class="mb-4">
-        <input
-          type="checkbox"
-          id="purchaseOrder"
-          name="purchaseOrder"
-          class="mr-2 leading-tight"
-          :disabled="isPurchaseOrder"
-          v-model="purchaseOrder"
-        />
-        <label for="purchaseOrder" class="text-sm"
-          >Створити замовлення на закупівлю</label
-        >
-      </div>
-
-      <div id="purchaseOrderDetails" class="mb-4 hidden">
-        <h3 class="text-lg font-semibold">
-          Товари для замовлення на закупівлю:
-        </h3>
-        <ul id="orderList" class="list-disc pl-5 mt-2"></ul>
-      </div>
-
-      <button
-        type="submit"
-        class="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700"
-      >
-        Надіслати
-      </button>
-    </form>
-  </div> -->
-
   <div class="bg-white shadow-md rounded-md px-6 py-8">
     <h2 class="text-2xl font-bold mb-6">New Sales Order</h2>
 
@@ -180,6 +82,104 @@
         </button>
       </div>
     </div>
+
+    <div class="overflow-x-auto" v-if="addedProducts.length">
+      <table
+        class="min-w-full bg-white border border-gray-300 shadow-md rounded-lg"
+      >
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="px-4 py-2 text-left">Назва товару</th>
+            <th class="px-4 py-2 text-center">Кількість</th>
+            <th class="px-4 py-2 text-center">Ціна</th>
+            <th class="px-4 py-2 text-center">Сума</th>
+            <th class="px-4 py-2 text-center">Дія</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="product in addedProducts"
+            :key="product.item_id"
+            class="border-t"
+          >
+            <td class="px-4 py-2">{{ product.name }}</td>
+            <td class="px-4 py-2 text-center">
+              <input
+                type="number"
+                v-model.number="product.quantity"
+                min="1"
+                class="w-16 p-1 border rounded text-center"
+              />
+            </td>
+            <td class="px-4 py-2 text-center">{{ product.rate }} грн</td>
+            <td class="px-4 py-2 text-center">
+              {{ calculateTotalProduct(product) }} грн
+            </td>
+            <td class="px-4 py-2 text-center">
+              <button
+                @click="removeProduct(product.item_id)"
+                class="bg-red-500 text-white px-3 py-1 rounded transition-all duration-300 hover:bg-red-700"
+              >
+                Видалити
+              </button>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="bg-gray-100 font-bold">
+            <td colspan="4" class="px-4 py-2 text-right">Загальна сума:</td>
+            <td class="px-4 py-2 text-center">{{ calculateTotal }} грн</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="mt-4">
+      <label for="purchases" class="flex items-center space-x-2 cursor-pointer">
+        <input
+          type="checkbox"
+          id="purchases"
+          class="peer hidden"
+          :disabled="isPurchaseDisabled"
+          v-model="purchaseOrder"
+        />
+
+        <div
+          :disabled="isPurchaseDisabled"
+          class="w-5 h-5 border-2 peer-disabled:bg-gray-400 border-gray-400 rounded-md flex items-center justify-center peer-checked:bg-green-500 peer-checked:border-green-500 transition duration-200"
+        >
+          <svg
+            v-if="purchaseOrder"
+            class="w-4 h-4 text-white"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M5 13l4 4L19 7"
+            ></path>
+          </svg>
+        </div>
+        <span class="text-sm font-bold text-gray-600">
+          Створити закупівлю у постачальника
+        </span>
+      </label>
+    </div>
+
+    <div class="mt-4 flex justify-end">
+      <button
+        :disabled="!addedProducts.length"
+        @click="salesOrder"
+        class="bg-green-500 cursor-pointer transition-all duration-300 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-300"
+      >
+        Замовити
+      </button>
+    </div>
   </div>
 </template>
 
@@ -200,7 +200,7 @@ const formatDate = (date) => {
 const selectContact = ref({});
 const selectProduct = ref({});
 
-const isPurchaseOrder = ref(false);
+let isPurchaseDisabled = ref(true);
 const contact = ref({
   name: "",
   email: "",
@@ -216,10 +216,51 @@ const products = ref([]);
 
 const addedProducts = ref([]);
 
-const addProduct = () => {
-  addedProducts.value.push(selectProduct.value);
-  console.log(addedProducts.value);
+const removeProduct = (id) => {
+  addedProducts.value = addedProducts.value.filter(
+    (product) => product.item_id !== id
+  );
+
+  isPurchaseDisabled = !computePurchase.value;
+
+  selectProduct.value = {};
 };
+const calculateTotalProduct = (product) => {
+  return product.quantity * product.rate;
+};
+const calculateTotal = computed(() => {
+  return addedProducts.value.reduce(
+    (acc, product) => acc + product.quantity * product.rate,
+    0
+  );
+});
+const addProduct = () => {
+  if (addedProducts.value.includes(selectProduct.value)) return;
+
+  selectProduct.value.quantity = 1;
+  addedProducts.value.push(selectProduct.value);
+};
+
+const salesOrder = () => {
+  console.log("Sales Order");
+};
+
+const computePurchase = computed(() => {
+  return addedProducts.value.some(
+    (product) =>
+      product.available_stock && product.quantity < product.available_stock
+  );
+});
+
+watch(
+  addedProducts.value,
+  () => {
+    console.log("Added Products", addedProducts.value);
+
+    isPurchaseDisabled = computePurchase.value;
+  },
+  { deep: true }
+);
 
 onMounted(() => {
   getContacts().then((data) => {

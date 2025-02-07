@@ -26,12 +26,15 @@ class ItemsController extends Controller
         return response()->json(['success' => true, 'data' => $response]);
     }
 
-//    public function store(StoreRequest $request): JsonResponse
-//    {
-//        $data = $request->validated();
-//
-//        $response = $this->service->addItem($data);
-//
-//        return response()->json(['success' => true, 'data' => $response]);
-//    }
+    /**
+     * @throws Exception
+     */
+    public function store(StoreRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+
+        $response = $this->service->store($data);
+
+        return response()->json(['success' => true, 'data' => $response]);
+    }
 }

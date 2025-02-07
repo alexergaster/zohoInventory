@@ -8,6 +8,7 @@ use Exception;
 class Service
 {
     use InventoryRequest;
+    private const itemType = "inventory";
 
     public function __construct()
     {
@@ -23,5 +24,15 @@ class Service
     public function index(): array
     {
         return $this->sendRequest('/items', "get");
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function store(array $data): array
+    {
+        $data['item_type'] = self::itemType;
+
+        return $this->sendRequest('/items', "post", $data);
     }
 }

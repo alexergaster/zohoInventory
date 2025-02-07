@@ -26,7 +26,8 @@ class StoreRequest extends FormRequest
         return [
             'name' => ['required','string','max:255'],
             'rate' => ['required','numeric','min:0'],
-            'unit' => ['required','string','max:255'],
+            'purchase_rate' => ['required','int','min:0'],
+            'initial_stock' => ['required','int','min:0'],
         ];
     }
 
