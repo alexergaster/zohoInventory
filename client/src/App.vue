@@ -7,7 +7,7 @@
         for="contactName"
         class="block text-red-600 text-sm font-bold mb-2"
       >
-        Customer Name*
+        Обрати клієнта*
       </label>
       <div class="relative">
         <select
@@ -15,7 +15,6 @@
           class="w-full p-3 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
           v-model="selectContact"
         >
-          <option value="">Select or add a customer</option>
           <option
             v-for="contact in contacts"
             :key="contact.contact_id"
@@ -25,16 +24,17 @@
           </option>
         </select>
         <button
+          @click="isModalOpen = true"
           class="absolute right-6 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded cursor-pointer"
         >
-          <i class=""> + </i>
+          <i> + </i>
         </button>
       </div>
     </div>
 
     <div class="mb-4">
       <label for="date" class="block text-gray-700 text-sm font-bold mb-2">
-        Date
+        Дата
       </label>
       <input
         type="text"
@@ -57,7 +57,7 @@
 
     <div class="mb-4">
       <label for="product" class="block text-red-600 text-sm font-bold mb-2">
-        Products*
+        Товари*
       </label>
       <div class="relative">
         <select
@@ -66,7 +66,6 @@
           v-model="selectProduct"
           @change="addProduct"
         >
-          <option value="">Select or add a product</option>
           <option
             v-for="product in products"
             :key="product.item_id"
@@ -180,12 +179,50 @@
         Замовити
       </button>
     </div>
+
+    <ModalItem
+      :isModalOpen="isModalOpen"
+      @close="isModalOpen = false"
+      @confirm="handleConfirm"
+    >
+      <template #title>Додати клієнта</template>
+      <template #content>
+        <div class="mb-4">
+          <label for="name" class="block text-red-700 text-sm font-bold mb-2">
+            Ім'я клієнта*
+          </label>
+          <input
+            type="text"
+            id="name"
+            v-model="contactData.name"
+            class="w-full p-3 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
+          />
+        </div>
+        <div class="mb-4">
+          <label for="email" class="block text-gray-700 text-sm font-bold mb-2">
+            Email
+          </label>
+          <input
+            v-model="contactData.email"
+            type="email"
+            id="email"
+            class="w-full p-3 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
+          />
+        </div>
+
+        <div class="mb-4 p-2 border-red-600 rounded border-2 text-center">
+          <p class="block text-red-600 text-sm"></p>
+        </div>
+      </template>
+    </ModalItem>
   </div>
 </template>
 
 <script setup>
+import ModalItem from "./components/ModalItem.vue";
+
 import { ref, onMounted, watch, computed } from "vue";
-import { getContacts, getItems } from "./api";
+import { getContacts, getItems, addContact } from "./api";
 import Datepicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 
@@ -193,8 +230,26 @@ const selectedDate = ref(null);
 const showDatePicker = ref(false);
 const formatDate = (date) => {
   if (!date) return "";
-  const options = { day: "2-digit", month: "short", year: "numeric" };
-  return new Intl.DateTimeFormat("en-GB", options).format(date);
+  const options = { day: "2-digit", month: "numeric", year: "numeric" };
+  return new Intl.DateTimeFormat("ua-UA", options).format(date);
+};
+
+const contactData = ref({
+  name: "",
+  email: "",
+});
+const isModalOpen = ref(false);
+const handleConfirm = () => {
+  const body = {
+    contact_name: contactData.value.name,
+    email: contactData.value.email,
+  };
+
+  addContact(body).then((data) => {
+    contacts.value.push(data.data.contact);
+    selectContact.value = data.data.contact;
+    isModalOpen.value = false;
+  });
 };
 
 const selectContact = ref({});
@@ -278,3 +333,9 @@ onMounted(() => {
   });
 });
 </script>
+
+<style>
+.modal_bg {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+</style>

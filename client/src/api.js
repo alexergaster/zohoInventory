@@ -14,8 +14,8 @@ export const getItems = async () => {
   return response.data;
 };
 
-export const saleOrder = async (data) => {
-  const response = await axios.post(`${URL}/salesorders`, data);
+export const addContact = async (data) => {
+  const response = await axios.post(`${URL}/contacts`, data);
 
   return response.data;
 };

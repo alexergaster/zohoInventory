@@ -24,13 +24,12 @@ class StoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'contact_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255'],
+            'customer_id' => ['required', 'integer'],
+            'date' => ['nullable', 'date'],
             'line_items' => ['required', 'array'],
             'line_items.*.item_id' => ['required', 'integer'],
             'line_items.*.quantity' => ['required', 'integer', 'min:1'],
-            'is_purchase_order' => ['required', 'boolean'],
-            'quantity_purchase_order' => ['nullable', 'integer', 'min:1'],
+            'is_purchase_order' => ['required', 'boolean']
         ];
     }
     protected function failedValidation(Validator $validator): void

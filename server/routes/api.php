@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\ContactsController;
 use App\Http\Controllers\ItemsController;
+use App\Http\Controllers\SaleOrderController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -16,4 +17,4 @@ Route::group(['prefix' => 'contacts'], function () {
     Route::post('/', [ContactsController::class, "store"]);
 });
 
-//Route::post('/salesorders', [SaleOrderController::class, "store"]);
+Route::post('/salesorders', [SaleOrderController::class, "store"]);

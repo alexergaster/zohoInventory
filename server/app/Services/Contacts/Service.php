@@ -9,6 +9,8 @@ class Service
 {
     use InventoryRequest;
 
+    private const contactType = 'customer';
+
     public function __construct()
     {
         $this->accessToken = config('services.zoho.access_token');
@@ -30,6 +32,8 @@ class Service
      */
     public function store(array $data): array
     {
-       return $this->sendRequest("/contacts", "post", $data);
+        $data['contact_type'] = self::contactType;
+
+        return $this->sendRequest("/contacts", "post", $data);
     }
 }

@@ -36,7 +36,7 @@ trait InventoryRequest
     /**
      * @throws Exception
      */
-    private function sendRequest(string $endpoint, string $method, array $data = [], bool $retry = true): array
+    private function sendRequest(string $endpoint, string $method, array$data = [], bool $retry = true): array
     {
         $this->accessToken = cache('zoho_access_token') ?? $this->accessToken;
 
