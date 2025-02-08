@@ -8,6 +8,7 @@
         <select
           class="w-full p-3 border rounded-md shadow-sm"
           v-model="selected"
+          @change="selectContact"
         >
           <option
             v-for="contact in contacts"
@@ -32,31 +33,24 @@
     >
       <template #title>Додати клієнта</template>
       <template #content>
-        <div class="mb-4">
-          <label for="name" class="block text-red-700 text-sm font-bold mb-2">
-            Ім'я клієнта*
-          </label>
-          <input
-            type="text"
-            id="name"
-            v-model="contactData.name"
-            class="w-full p-3 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
-          />
-        </div>
-        <div class="mb-4">
-          <label for="email" class="block text-gray-700 text-sm font-bold mb-2">
-            Email
-          </label>
-          <input
-            v-model="contactData.email"
-            type="email"
-            id="email"
-            class="w-full p-3 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
-          />
-        </div>
+        <BaseInput
+          v-model="contactData.name"
+          label="Ім'я клієнта*"
+          id="name"
+          :rules="[required]"
+        />
+        <BaseInput
+          v-model="contactData.email"
+          label="Email клієнта"
+          id="email"
+          :rules="[emailValidation]"
+        />
 
-        <div class="mb-4 p-2 border-red-600 rounded border-2 text-center">
-          <p class="block text-red-600 text-sm"></p>
+        <div
+          v-if="errorMessage.length"
+          class="mb-4 p-2 border-red-600 rounded border-2 text-center"
+        >
+          <p class="block text-red-600 text-sm">{{ errorMessage }}</p>
         </div>
       </template>
     </ModalItem>
@@ -64,12 +58,22 @@
 </template>
 
 <script setup>
-import ModalItem from "./ModalItem.vue";
-import { onMounted, ref } from "vue";
-import { getContacts, addContact } from "../api";
+import ModalItem from "../modals/ModalItem.vue";
+import BaseInput from "./BaseInput.vue";
+
+import { onMounted, defineEmits, ref } from "vue";
+import { getContacts, addContact } from "../../api";
+
+const required = (value) => (!value ? "Це поле обов'язкове" : "");
+const emailValidation = (value) => {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return !emailPattern.test(value) ? "Введіть коректний email" : "";
+};
+const emit = defineEmits(["update:contact"]);
 
 const selected = ref({});
 const contacts = ref([]);
+const errorMessage = ref("");
 
 const contactData = ref({
   name: "",
@@ -83,10 +87,20 @@ const handleConfirm = () => {
   };
 
   addContact(body).then((data) => {
-    contacts.value.push(data.data.contact);
-    selected.value = data.data.contact;
-    isModalOpen.value = false;
+    if (data.data.code === 0) {
+      contacts.value.push(data.data.contact);
+      selected.value = data.data.contact;
+      isModalOpen.value = false;
+      contactData.value = { name: "", email: "" };
+      selectContact();
+    } else {
+      errorMessage.value = data.data.message;
+    }
   });
+};
+
+const selectContact = () => {
+  emit("update:contact", selected.value);
 };
 
 onMounted(() => {
@@ -94,7 +108,6 @@ onMounted(() => {
     contacts.value = data.data.contacts.filter(
       (contact) => contact.contact_type_formatted === "Customer"
     );
-    console.log("Contacts", contacts.value);
   });
 });
 </script>

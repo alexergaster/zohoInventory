@@ -25,3 +25,9 @@ export const salesOrders = async (data) => {
 
   return response.data;
 };
+
+export const addItem = async (data) => {
+  const response = await axios.post(`${URL}/items`, data);
+
+  return response.data;
+};
