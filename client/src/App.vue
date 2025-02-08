@@ -79,15 +79,14 @@ const selectContact = ref({});
 const selectProduct = ref({});
 
 let isPurchaseDisabled = ref(true);
-const purchaseOrder = ref(false);
+let purchaseOrder = ref(false);
 
 const removeProduct = (id) => {
   addedProducts.value = addedProducts.value.filter(
     (product) => product.item_id !== id
   );
 
-  isPurchaseDisabled = !computePurchase.value;
-
+  purchaseOrder.value = false;
   selectProduct.value = {};
 };
 
@@ -117,19 +116,14 @@ const salesOrder = () => {
 };
 
 const computePurchase = computed(() => {
-  return addedProducts.value.some(
-    (product) =>
-      product.available_stock && product.quantity < product.available_stock
+  return !addedProducts.value.some(
+    (product) => product.quantity >= product.available_stock
   );
 });
 
 watch(
-  addedProducts.value,
-  () => {
-    console.log("Added Products", addedProducts.value);
-
-    isPurchaseDisabled.value = computePurchase.value;
-  },
+  () => addedProducts.value,
+  () => (isPurchaseDisabled.value = computePurchase.value),
   { deep: true }
 );
 </script>
