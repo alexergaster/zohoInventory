@@ -5,7 +5,7 @@
       <select
         class="w-full p-3 border rounded-md shadow-sm"
         v-model="selected"
-        @change="$emit('add')"
+        @change="addProduct"
       >
         <option
           v-for="product in products"
@@ -25,13 +25,18 @@
 </template>
 
 <script setup>
-import { defineEmits, defineProps, onMounted, ref } from "vue";
+import { defineEmits, onMounted, ref } from "vue";
 import { getItems } from "../api";
 
-const products = ref([]);
-const emit = defineEmits(["update:modelValue", "add"]);
+const emit = defineEmits(["update:products"]);
 
-const selected = defineModel();
+const products = ref([]);
+const selected = ref({});
+
+const addProduct = () => {
+  selected.value.quantity = 1;
+  emit("update:products", selected.value);
+};
 
 onMounted(() => {
   getItems().then((data) => {

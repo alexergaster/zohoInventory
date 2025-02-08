@@ -14,7 +14,14 @@
       </thead>
       <tbody>
         <tr v-for="product in products" :key="product.item_id" class="border-t">
-          <td class="px-4 py-2">{{ product.name }}</td>
+          <td
+            class="px-4 py-2"
+            :class="{
+              'text-red-600': product.available_stock < product.quantity,
+            }"
+          >
+            {{ product.name }} - {{ product.available_stock }} шт.
+          </td>
           <td class="px-4 py-2 text-center">
             <input
               type="number"
@@ -29,7 +36,7 @@
           </td>
           <td class="px-4 py-2 text-center">
             <button
-              @click="$emit('remove', product.item_id)"
+              @click="removeProduct(product.item_id)"
               class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700"
             >
               Видалити
@@ -52,8 +59,16 @@
 import { defineEmits, defineProps, computed } from "vue";
 
 const props = defineProps(["products"]);
-const emit = defineEmits(["remove"]);
+const emit = defineEmits(["remove-products"]);
+
 const calculateTotalProduct = (product) => product.quantity * product.rate;
+
+const removeProduct = (id) => {
+  const updatedProducts = props.products.filter(
+    (product) => product.item_id !== id
+  );
+  emit("remove-products", updatedProducts);
+};
 
 const calculateTotal = computed(() => {
   return props.products.reduce(
