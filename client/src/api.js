@@ -19,3 +19,9 @@ export const addContact = async (data) => {
 
   return response.data;
 };
+
+export const salesOrders = async (data) => {
+  const response = await axios.post(`${URL}/salesorders`, data);
+
+  return response.data;
+};
