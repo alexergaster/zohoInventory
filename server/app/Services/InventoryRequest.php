@@ -36,7 +36,7 @@ trait InventoryRequest
     /**
      * @throws Exception
      */
-    private function sendRequest(string $endpoint, string $method, array$data = [], bool $retry = true): array
+    private function sendRequest(string $endpoint, string $method, array $data = [], array $param = [], bool $retry = true): array
     {
         $this->accessToken = cache('zoho_access_token') ?? $this->accessToken;
 
@@ -46,13 +46,14 @@ trait InventoryRequest
         try {
             $response = Http::withoutVerifying()
                 ->withHeaders($headers)
+                ->withQueryParameters($param)
                 ->$method("https://www.zohoapis.eu/inventory/v1/$endpoint", $data)
                 ->json();
 
             if (isset($response['code']) && $response['code'] === 57 && $retry) {
                 $this->refreshToken();
 
-                return $this->sendRequest($endpoint, $method, $data, false);
+                return $this->sendRequest($endpoint, $method, $data, [], false);
             }
 
             return $response;
