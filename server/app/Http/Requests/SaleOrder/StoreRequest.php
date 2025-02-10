@@ -29,6 +29,7 @@ class StoreRequest extends FormRequest
             'line_items' => ['required', 'array'],
             'line_items.*.item_id' => ['required', 'integer'],
             'line_items.*.quantity' => ['required', 'integer', 'min:1'],
+            'line_items.*.tax_id' => ['nullable', 'integer'],
             'is_purchase_order' => ['required', 'boolean']
         ];
     }

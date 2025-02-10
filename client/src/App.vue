@@ -6,17 +6,10 @@
 
     <DatePickerInput v-model="date" />
 
-    <ProductSelect @update:products="product.push($event)" />
-
-    <ProductTable
-      v-if="product.length"
-      v-model="product"
-      :products="product"
-      @remove-products="product = $event"
-    />
+    <ProductTable v-model="products" @update:products="products = $event" />
 
     <PurchaseCheckbox
-      :product="product"
+      :product="products"
       @update:purchaseOrder="purchaseOrder = $event"
     />
     <div
@@ -61,7 +54,7 @@ import { ref, computed, watch } from "vue";
 import { salesOrders } from "./api";
 
 const date = ref(null);
-const product = ref([]);
+const products = ref([]);
 const contact = ref({});
 const purchaseOrder = ref(false);
 const message = ref({});
@@ -72,12 +65,15 @@ const salesOrder = () => {
   const data = {
     customer_id: contact.value.contact_id,
     date: date.value ?? "",
-    line_items: product.value.map((product) => ({
-      item_id: product.item_id,
-      quantity: product.quantity,
+    line_items: products.value.map((products) => ({
+      item_id: products.item_id,
+      quantity: products.quantity,
+      tax_id: products.tax,
     })),
     is_purchase_order: purchaseOrder.value,
   };
+
+  console.log(data);
 
   salesOrders(data).then((data) => {
     if (data.data.code === 0) {
@@ -92,11 +88,11 @@ const salesOrder = () => {
 };
 
 const isButtonEnabled = computed(() => {
-  return product.value.length > 0 && Boolean(contact.value.contact_id);
+  return products.value.length > 0 && Boolean(contact.value.contact_id);
 });
 
 watch(
-  [contact, product, date, purchaseOrder],
+  [contact, products, date, purchaseOrder],
   () => {
     message.value = {};
   },

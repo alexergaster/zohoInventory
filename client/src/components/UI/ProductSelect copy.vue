@@ -1,29 +1,28 @@
 <template>
   <div>
     <div class="mb-4">
-      <div
-        v-if="selected && selected !== 'modal'"
-        class="p-3 border rounded-md shadow-sm bg-gray-100"
-      >
-        {{ selected.name }} - {{ selected.available_stock }} шт.
-      </div>
-      <select
-        v-else
-        class="w-full p-3 border rounded-md shadow-sm"
-        v-model="selected"
-        @change="updateSelectedProduct"
-      >
-        <option
-          v-for="product in products"
-          :key="product.item_id"
-          :value="product"
+      <label class="block text-red-600 text-sm font-bold mb-2">Товари*</label>
+      <div class="relative">
+        <select
+          class="w-full p-3 border rounded-md shadow-sm"
+          v-model="selected"
+          @change="addProduct"
         >
-          {{ product.name }} - {{ product.available_stock }} шт.
-        </option>
-        <option value="modal" class="text-blue-500 bg-gray-200">
-          Додати товар
-        </option>
-      </select>
+          <option
+            v-for="product in products"
+            :key="product.item_id"
+            :value="product"
+          >
+            {{ product.name }} - {{ product.available_stock }} шт.
+          </option>
+        </select>
+        <button
+          @click="isModalOpen = true"
+          class="absolute right-6 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded cursor-pointer"
+        >
+          <i> + </i>
+        </button>
+      </div>
     </div>
     <ModalItem
       :isModalOpen="isModalOpen"
@@ -74,17 +73,21 @@
 </template>
 
 <script setup>
-import BaseInput from "./BaseInput.vue";
 import ModalItem from "../modals/ModalItem.vue";
-import { defineProps, defineEmits, ref, computed } from "vue";
-import { addItem } from "../../api";
+import BaseInput from "./BaseInput.vue";
 
-const props = defineProps(["selectedProduct", "products"]);
-const emit = defineEmits(["update:product"]);
+import { defineEmits, onMounted, ref } from "vue";
+import { getItems, addItem } from "../../api";
 
-const productsAll = ref([]);
+const emit = defineEmits(["update:products"]);
 
-console.log(props.products);
+const required = (value) => (!value ? "Це поле обов'язкове" : "");
+const positiveNumber = (value) =>
+  isNaN(value) || Number(value) <= 0 ? "Має бути позитивним числом" : "";
+
+const products = ref([]);
+const selected = ref({});
+const errorMessage = ref("");
 
 const productData = ref({
   name: "",
@@ -92,10 +95,8 @@ const productData = ref({
   purchase_rate: "",
   initial_stock: "",
 });
-const selected = ref(props.selectedProduct || null);
-const errorMessage = ref("");
-const isModalOpen = ref(false);
 
+const isModalOpen = ref(false);
 const handleConfirm = () => {
   errorMessage.value = "";
   const product = { ...productData.value };
@@ -103,6 +104,7 @@ const handleConfirm = () => {
   addItem(product).then((data) => {
     if (data.data.code === 0) {
       selected.value = data.data.item;
+      products.value.push(data.data.item);
       isModalOpen.value = false;
       productData.value = {
         name: "",
@@ -110,22 +112,24 @@ const handleConfirm = () => {
         purchase_rate: "",
         initial_stock: "",
       };
-      emit("update:product", selected.value);
+      addProduct();
     } else {
       errorMessage.value = data.data.message;
     }
   });
 };
 
-const required = (value) => (!value ? "Це поле обов'язкове" : "");
-const positiveNumber = (value) =>
-  isNaN(value) || Number(value) <= 0 ? "Має бути позитивним числом" : "";
-
-const updateSelectedProduct = () => {
-  if (selected.value === "modal") {
-    isModalOpen.value = true;
-  } else {
-    emit("update:product", selected.value);
-  }
+const addProduct = () => {
+  selected.value.quantity = 1;
+  emit("update:products", selected.value);
 };
+
+onMounted(() => {
+  getItems().then((data) => {
+    products.value = data.data.items.filter(
+      (product) => product.status !== "inactive"
+    );
+    console.log("Products", products.value);
+  });
+});
 </script>
